@@ -1,17 +1,22 @@
-# Project specification
+# Skop dan pencapaian projek — DVS GSI Calculator
 
 ## Asal dan tujuan
-Keperluan daripada perbincangan WhatsApp bersama Dr Farrah Alias, 10 April 2026: bina alat ringkas mengira Gonadosomatic Index (GSI) ayam jantan menggunakan berat badan, berat testis kiri dan kanan (tanpa EBV).
+Keperluan daripada perbincangan WhatsApp bersama Dr Farrah Alias pada 10 April 2026: alat pengiraan Gonadosomatic Index (GSI) ayam jantan daripada berat badan serta berat testis kiri dan kanan, tanpa EBV.
 
-## Skop v1
-- Pengiraan live dan kategori julat sementara.
-- Identiti visual 3D Clay dengan palet DVS (biru, merah, kuning).
-- Medan ID ayam, baka, umur, tarikh, pegawai, lokasi.
-- Sejarah setempat (localStorage), CSV, cetak/PDF.
-- PWA installable dan offline app shell.
+## Fungsi yang telah dilaksanakan (22 November 2026)
+- Kalkulator GSI LIVE, jumlah testis dan kategori julat rujukan sementara.
+- Antaramuka 3D Clay dengan gaya warna DVS; medan ID ayam, baka, umur, tarikh, lokasi dan nama pegawai.
+- Google OAuth / Google Identity Services untuk akaun DVS `@dvs.gov.my`, dengan token identiti disahkan di Cloudflare Worker.
+- Cloudflare Worker production → Google Sheets API → **satu** spreadsheet utama, tab `Rekod GSI`.
+- Simpan pemeriksaan sebenar, baca semula sejarah cloud, eksport CSV dan cetak/PDF.
+- Mod rekod peranti melalui `localStorage` dan PWA dengan cache shell aplikasi.
+- Pemadaman cloud **dikunci**, tidak tersedia untuk pengguna pada release ini.
 
-## Di luar skop
-EBV, ramalan kesuburan, akaun berpusat, penyegerakan cloud, norma khusus baka, pensijilan diagnostik, carta purata GSI bulanan berdasarkan data sebenar.
+## Bukti pencapaian
+Pada 22 November 2026, pengguna menunjukkan respons GET sejarah HTTP 200 selepas akses Editor Service Account ke fail dikongsi semula. Selepas fungsi Simpan dibuka, pengguna memaparkan mesej kejayaan serta satu rekod sebenar dalam sejarah dan baris Google Sheets yang sepadan. Ini mengesahkan satu aliran simpanan end-to-end; ia **bukan** ujian beban, ujian semua pengguna atau pengesahan diagnostik.
 
-## Sebelum penggunaan rasmi
-Sahkan formula dan interpretasi bersama pakar; semak SOP pensampelan, kebenaran identiti DVS, privasi rekod dan pelaksanaan ujian pengguna. Rekod berat testis biasanya diperoleh selepas pensampelan organ.
+## Di luar skop semasa
+EBV, ramalan kesuburan, norma khusus baka, carta purata GSI bulanan tanpa data rujukan, pemadaman cloud oleh pengguna, dan pengesahan rasmi sistem sebagai alat diagnostik.
+
+## Baki tugas
+Penyelarasan kod sumber Worker di GitHub dengan bundle production yang telah dikemas kini terus di Cloudflare; ujian kawalan akses dan operasi penulisan tanpa rekod dummy; semakan SOP, keselamatan data, dan kelulusan penggunaan organisasi. Rujuk [checkpoint](CHECKPOINT_2026-11-22.md) serta [security](SECURITY_RELEASE.md).
