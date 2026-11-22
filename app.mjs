@@ -3,7 +3,7 @@ import { category, measures, recordsCsv } from './record.mjs';
 const $ = id => document.getElementById(id);
 const fields = ['id', 'breed', 'age', 'date', 'officer', 'location', 'body', 'left', 'right'];
 const storage = 'dvs_gsi_clay_v1';
-const cloudReadOnly = true; // Login/read-only pilot; main spreadsheet writes remain disabled.
+const cloudReadOnly = false; // Authorized production record saves; deletion remains disabled.
 const apiRoot = $('cloudAccess').dataset.apiUrl.trim().replace(/\/+$/, '');
 const errors = {
   api_unconfigured: 'API GSI belum dikonfigurasi.',
@@ -151,7 +151,7 @@ function render() {
     for (const value of values) row.insertCell().textContent = value === '' || value == null ? '—' : value;
 
     const cell = row.insertCell();
-    if (useCloud && (cloudReadOnly || !record.canDelete)) {
+    if (useCloud) {
       cell.textContent = '—';
       return;
     }
@@ -316,8 +316,8 @@ async function saveRecord() {
 function removeRecord(record, index) {
   const source = useCloud ? 'sejarah Google Sheets' : 'peranti ini';
   if (!confirm('Padam rekod ' + (record.id || 'ini') + ' daripada ' + source + '?')) return;
-  if (useCloud && cloudReadOnly) {
-    notify('Padam Google Sheets tidak dibenarkan dalam mod baca sahaja.', true);
+  if (useCloud) {
+    notify('Padam Google Sheets belum diaktifkan.', true);
     return;
   }
   if (useCloud) {
