@@ -37,3 +37,5 @@ Semua berat mesti dalam **gram**. Contoh: (9.2 + 8.8) / 2500 × 100 = **0.72%**.
 Carta umur adalah **cadangan yang belum dilaksanakan**, kerana petikan pengarah tidak membekalkan data GSI bulanan. Jangan mencipta lengkung data rekaan.
 
 **Penafian:** Penggunaan logo/warna DVS tidak bermaksud kelulusan rasmi. Penggunaan operasi rasmi memerlukan semakan kesahan saintifik, SOP dan tadbir urus data.
+
+- [Pelan integrasi Google Sheets](docs/GOOGLE_SHEETS.md)
