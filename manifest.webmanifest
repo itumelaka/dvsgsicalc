@@ -1,0 +1,20 @@
+{
+  "id": "./",
+  "name": "DVS GSI Calculator — 3D Clay",
+  "short_name": "GSI DVS",
+  "description": "Kalkulator GSI ayam jantan baka",
+  "lang": "ms-MY",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#edf2ff",
+  "theme_color": "#1e3785",
+  "icons": [
+    {
+      "src": "./assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
