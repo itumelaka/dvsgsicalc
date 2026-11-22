@@ -1,1 +1,42 @@
-const CACHE='dvs-gsi-clay-v2-20261122';const base=self.registration.scope;const assets=['./','./index.html','./manifest.webmanifest','./assets/icon.svg'];self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(assets.map(p=>new URL(p,base).href))));self.skipWaiting()});self.addEventListener('activate',e=>{e.waitUntil((async()=>{for(const k of await caches.keys())if(k.startsWith('dvs-gsi-clay-')&&k!==CACHE)await caches.delete(k);await self.clients.claim()})())});self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;const u=new URL(e.request.url);if(u.origin!==self.location.origin||!u.href.startsWith(base))return;if(e.request.mode==='navigate'){e.respondWith(fetch(e.request).catch(()=>caches.match(new URL('./index.html',base).href)));return;}e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)))})
+const cacheName = 'dvs-gsi-clay-v3';
+const scope = self.registration.scope;
+const shell = ['index.html', 'app.mjs', 'record.mjs', 'manifest.webmanifest', 'assets/icon.svg', 'assets/logo-dvs.webp'];
+const shellUrls = shell.map(path => new URL(path, scope).href);
+const indexUrl = shellUrls[0];
+
+self.addEventListener('install', event => {
+  event.waitUntil((async () => {
+    const cache = await caches.open(cacheName);
+    await cache.addAll(shellUrls.map(url => new Request(url, { cache: 'reload' })));
+    await self.skipWaiting();
+  })());
+});
+
+self.addEventListener('activate', event => {
+  event.waitUntil((async () => {
+    for (const key of await caches.keys()) {
+      if (key.startsWith('dvs-gsi-clay-') && key !== cacheName) await caches.delete(key);
+    }
+    await self.clients.claim();
+  })());
+});
+
+self.addEventListener('fetch', event => {
+  const request = event.request;
+  if (request.method !== 'GET' || !request.url.startsWith(scope)) return;
+  if (request.mode === 'navigate' && [scope, indexUrl].includes(request.url.split('?')[0])) {
+    event.respondWith((async () => {
+      const cache = await caches.open(cacheName);
+      try {
+        const response = await fetch(request);
+        if (response.ok) await cache.put(indexUrl, response.clone());
+        return response;
+      } catch {
+        return cache.match(indexUrl);
+      }
+    })());
+  } else if (shellUrls.includes(request.url)) {
+    event.respondWith(caches.open(cacheName).then(async cache =>
+      await cache.match(request) ?? fetch(request)));
+  }
+});

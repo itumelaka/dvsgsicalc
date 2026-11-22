@@ -7,7 +7,7 @@ Kalkulator Gonadosomatic Index (GSI) ayam jantan baka untuk kegunaan percubaan p
 ## Fungsi
 - Pengiraan GSI secara LIVE.
 - Maklumat ID ayam, baka, umur (bulan), tarikh, pegawai dan lokasi.
-- Rekod setempat dalam pelayar, eksport CSV, cetak/PDF, reset.
+- Rekod peranti, eksport CSV, cetak/PDF dan reset. Apabila API diaktifkan, pegawai boleh log masuk dengan Google Workspace DVS dan menyimpan, membaca, memadam atau mengeksport rekod Google Sheets.
 - Antaramuka 3D Clay warna inspirasi DVS; butang timbul dengan animasi.
 - **Progressive Web App**: boleh dipasang pada telefon dan digunakan offline selepas lawatan pertama berjaya.
 
@@ -25,7 +25,7 @@ Semua berat mesti dalam **gram**. Contoh: (9.2 + 8.8) / 2500 × 100 = **0.72%**.
 4. Android: menu Chrome → **Install app** / **Add to Home screen**. iOS Safari: **Share → Add to Home Screen**.
 5. Buka laman sekurang-kurangnya sekali ketika online untuk membolehkan cache offline.
 
-**Data disimpan pada pelayar/peranti sahaja**. Ia boleh hilang selepas padam data pelayar atau tukar peranti. Eksport CSV secara berkala; jangan dedahkan rekod pegawai dalam GitHub awam.
+**Mod peranti** menyimpan rekod di pelayar. Rekod ini boleh hilang selepas data pelayar dipadam atau peranti ditukar. Eksport CSV secara berkala. **Mod Google Sheets** memerlukan sambungan internet dan akaun pegawai. Rekod peranti lama terus boleh dilihat dan dieksport melalui butang **Rekod Peranti**.
 
 ## Dokumentasi
 - [Skop projek](docs/PROJECT.md)
