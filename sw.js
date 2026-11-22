@@ -1,4 +1,4 @@
-const cacheName = 'dvs-gsi-clay-v4-login-readonly';
+const cacheName = 'dvs-gsi-clay-v5-auth-gate';
 const scope = self.registration.scope;
 const shell = ['index.html', 'app.mjs', 'record.mjs', 'manifest.webmanifest', 'assets/icon.svg', 'assets/logo-dvs.webp'];
 const shellUrls = shell.map(path => new URL(path, scope).href);

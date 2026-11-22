@@ -103,11 +103,16 @@ function setOfficerField() {
 }
 
 function render() {
+  const signedIn = Boolean(session);
   const connected = Boolean(session && navigator.onLine);
+  // Keep all examination inputs and saved history behind verified DVS sign-in.
+  $('calculatorArea').hidden = Boolean(apiRoot) && !signedIn;
+  $('historySection').hidden = Boolean(apiRoot) && !signedIn;
   const isCloudDisabled = useCloud && (busy || !connected);
   $('cloudAccess').hidden = !apiRoot;
   $('toggleMode').textContent = useCloud ? 'Rekod Peranti' : 'Rekod Google Sheets';
   $('toggleMode').disabled = busy;
+  $('toggleMode').hidden = Boolean(apiRoot) && !signedIn;
   $('googleButton').hidden = Boolean(session) || !navigator.onLine;
   $('retryLogin').hidden = Boolean(session) || !useCloud || !loginUnavailable || !navigator.onLine;
   $('retryLogin').disabled = loginLoading;
@@ -403,6 +408,7 @@ $('print').addEventListener('click', printReport);
 $('csv').addEventListener('click', exportCsv);
 $('retryLogin').addEventListener('click', prepareLogin);
 $('logout').addEventListener('click', () => {
+  if (apiRoot) useCloud = true;
   clearSession();
   pendingSave = null;
   if (useCloud) resetForm();
