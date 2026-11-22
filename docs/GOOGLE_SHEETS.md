@@ -44,3 +44,18 @@ Simpan kunci di luar checkout Git. Klien ID OAuth ialah maklumat awam. Token, ku
 5. Selepas ujian dan kelulusan production, setkan URL Worker dalam atribut `data-api-url` pada seksyen `cloudAccess` di `index.html`. Semak Eksport CSV, logout dan mod luar talian. Gunakan pemeriksaan sebenar yang dibenarkan untuk pengesahan simpanan LIVE.
 
 Ujian setempat dijalankan dengan `npm test` dan `npm run build` dalam `worker`. Ujian API menggunakan kekunci ujian dan respons Google olok-olok. Build Wrangler ialah dry run.
+
+## Ujian staging
+
+Worker staging menyediakan antaramuka GSI pada origin `workers.dev` sendiri. Build menggunakan fail antaramuka dalam repo dan menyasarkan Worker staging yang sama untuk panggilan API.
+
+Jalankan dua arahan ini dalam direktori `worker` dengan nilai yang telah disahkan.
+
+```sh
+node build-staging.mjs <origin-staging> <id-spreadsheet-ujian> <emel-service-account-staging>
+npx wrangler deploy .wrangler/staging-entry.mjs --name dvs-gsi-api-staging --dry-run --outdir .wrangler/staging-build
+```
+
+Versi staging mengikat origin, ID spreadsheet ujian dan e-mel Service Account yang ditetapkan ketika build. Gunakan klien OAuth Web staging dengan origin tersebut dan hadkan `GSI_ALLOWED_EMAILS` kepada pegawai perintis. Beri Service Account staging akses Editor pada spreadsheet ujian sahaja. Jika polisi membenarkan kunci JSON, simpan kelayakan itu dalam Secret `GOOGLE_SERVICE_ACCOUNT_JSON` pada Worker staging.
+
+Dengan flag tulis `false`, sahkan log masuk dan muat semula sejarah. Aktifkan penulisan pada staging selepas bacaan berjaya. Simpan satu rekod ujian, tekan Simpan sekali lagi dengan borang yang sama dan semak sejarah menunjukkan satu rekod. Semak eksport CSV, kemudian Padam. Baris ujian perlu kekal dalam Sheets dengan status `DIPADAM` dan hilang daripada sejarah serta CSV. Matikan flag tulis selepas ujian.
