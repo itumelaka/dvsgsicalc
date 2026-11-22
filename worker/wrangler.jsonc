@@ -1,0 +1,13 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "dvs-gsi-api",
+  "main": "index.mjs",
+  "compatibility_date": "2026-11-22",
+  "workers_dev": true,
+  "preview_urls": false,
+  "observability": { "enabled": false },
+  "vars": {
+    "APP_ORIGIN": "https://itumelaka.github.io",
+    "SHEETS_TAB": "Rekod GSI"
+  }
+}
