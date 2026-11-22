@@ -75,16 +75,17 @@ class SheetsError extends Error {
 }
 
 export class RecordSheet {
-  constructor(env) {
+  constructor(env, write) {
     this.tab = env.SHEETS_TAB;
     this.range = "'" + this.tab.replaceAll("'", "''") + "'!A1:P";
     this.base = 'https://sheets.googleapis.com/v4/spreadsheets/' +
       encodeURIComponent(env.SHEETS_SPREADSHEET_ID);
     this.secret = env.GOOGLE_SERVICE_ACCOUNT_JSON;
+    this.write = write;
   }
 
   async request(path, body) {
-    const token = await serviceToken(this.secret);
+    const token = await serviceToken(this.secret, this.write);
     const response = await fetch(this.base + path, {
       method: body ? 'POST' : 'GET',
       headers: {

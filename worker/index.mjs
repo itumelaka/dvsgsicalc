@@ -17,10 +17,14 @@ function json(body, status = 200) {
   return Response.json(body, { status });
 }
 
-function configured(env) {
-  return Boolean(/^[\w-]+\.apps\.googleusercontent\.com$/.test(env.GOOGLE_CLIENT_ID ?? '') &&
-    /^[\w-]+$/.test(env.SHEETS_SPREADSHEET_ID ?? '') &&
-    env.GOOGLE_SERVICE_ACCOUNT_JSON && env.SHEETS_TAB && env.APP_ORIGIN);
+function authConfigured(env) {
+  return Boolean(env.APP_ORIGIN &&
+    /^[\w-]+\.apps\.googleusercontent\.com$/.test(env.GOOGLE_CLIENT_ID ?? ''));
+}
+
+function sheetsConfigured(env) {
+  return Boolean(/^[\w-]+$/.test(env.SHEETS_SPREADSHEET_ID ?? '') &&
+    env.GOOGLE_SERVICE_ACCOUNT_JSON && env.SHEETS_TAB);
 }
 
 async function readBody(request) {
@@ -54,16 +58,19 @@ async function readBody(request) {
 }
 
 async function handle(request, env, path, method, key) {
-  if (path === '/health') return json({ status: 'ok', configured: configured(env) });
-  if (!configured(env)) throw new ApiError(503, 'api_unconfigured');
+  if (path === '/health') return json({ status: 'ok', configured: authConfigured(env) && sheetsConfigured(env) });
+  if (!authConfigured(env)) throw new ApiError(503, 'api_unconfigured');
   if (path === '/api/config') return json({ clientId: env.GOOGLE_CLIENT_ID, domain: officerDomain });
+  if (path !== '/api/me' && !sheetsConfigured(env)) throw new ApiError(503, 'api_unconfigured');
 
   const officer = await verifyOfficer(request, env);
   if (path === '/api/me') {
     return json({ name: officer.name, email: officer.email, expiresAt: officer.expiresAt });
   }
 
-  const sheet = new RecordSheet(env);
+  const write = method === 'POST' || method === 'DELETE';
+  if (write && env.GSI_WRITES_ENABLED !== 'true') throw new ApiError(403, 'writes_disabled');
+  const sheet = new RecordSheet(env, write);
   if (method === 'DELETE') {
     await sheet.delete(key, officer);
     return new Response(null, { status: 204 });

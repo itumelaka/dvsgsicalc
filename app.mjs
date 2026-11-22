@@ -22,6 +22,7 @@ const errors = {
   sheets_quota: 'Kuota sementara Google Sheets dicapai. Cuba semula dalam satu minit.',
   sheets_schema: 'Struktur tab Rekod GSI perlu disemak oleh penyelaras.',
   sheets_unavailable: 'Google Sheets tidak dapat dihubungi. Cuba semula dengan borang yang sama.',
+  writes_disabled: 'Akses Google Sheets dalam mod baca sahaja. Simpan atau padam belum diaktifkan.',
 };
 
 let localRecords = [];

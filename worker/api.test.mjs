@@ -12,6 +12,7 @@ const env = {
   GOOGLE_CLIENT_ID: '100-test.apps.googleusercontent.com',
   SHEETS_SPREADSHEET_ID: 'fixture-spreadsheet',
   SHEETS_TAB: 'Rekod GSI',
+  GSI_WRITES_ENABLED: 'true',
   GOOGLE_SERVICE_ACCOUNT_JSON: JSON.stringify({
     type: 'service_account',
     client_email: 'test@example.iam.gserviceaccount.com',
@@ -20,6 +21,8 @@ const env = {
   GSI_ADMIN_EMAILS: 'admin@example.invalid, admin@dvs.gov.my',
 };
 const sheetUrl = 'https://sheets.googleapis.com/v4/spreadsheets/' + env.SHEETS_SPREADSHEET_ID;
+const writeScope = 'https://www.googleapis.com/auth/spreadsheets';
+const readScope = writeScope + '.readonly';
 const googleFetch = globalThis.fetch;
 let values;
 let metadata;
@@ -27,7 +30,7 @@ let sheetStatus;
 let dropAppendReply;
 let sheetRequests;
 let appendBatches;
-let previousToken;
+let usedScopes;
 
 beforeEach(() => {
   values = [[...recordHeaders]];
@@ -36,6 +39,7 @@ beforeEach(() => {
   dropAppendReply = false;
   sheetRequests = 0;
   appendBatches = 0;
+  usedScopes = [];
 });
 after(() => { globalThis.fetch = googleFetch; });
 
@@ -50,14 +54,16 @@ globalThis.fetch = async (url, options) => {
       audience: url,
       issuer: 'test@example.iam.gserviceaccount.com',
     });
-    assert.equal(payload.scope, 'https://www.googleapis.com/auth/spreadsheets');
+    assert.ok([writeScope, readScope].includes(payload.scope));
     assert.equal(payload.sub, undefined);
-    previousToken = 'fixture-token';
-    return Response.json({ access_token: previousToken, expires_in: 3600 });
+    return Response.json({ access_token: payload.scope, expires_in: 3600 });
   }
   assert.ok(url.startsWith(sheetUrl), 'No request leaves the local test');
   sheetRequests += 1;
-  assert.equal(options.headers.Authorization, 'Bearer ' + previousToken);
+  const scope = options.headers.Authorization.slice('Bearer '.length);
+  assert.ok([writeScope, readScope].includes(scope));
+  if (options.method === 'POST') assert.equal(scope, writeScope);
+  usedScopes.push(scope);
   if (sheetStatus !== 200) return Response.json({}, { status: sheetStatus });
   const path = url.slice(sheetUrl.length);
   if (path.startsWith('/values/')) {
@@ -179,6 +185,39 @@ test('signed-in officer, strict Workspace domain, signature, audience, expiry, a
   const settings = { ...env, GSI_ALLOWED_EMAILS: 'other@dvs.gov.my' };
   assert.equal((await request('/api/me', { token, settings })).status, 403);
   assert.equal(sheetRequests, 0);
+});
+
+test('Google sign-in can be verified before granting access to Sheets', async () => {
+  const settings = { APP_ORIGIN: origin, GOOGLE_CLIENT_ID: env.GOOGLE_CLIENT_ID };
+  const token = await idToken();
+  assert.equal((await request('/api/config', { settings })).status, 200);
+  assert.equal((await request('/api/me', { settings })).status, 401);
+  assert.equal((await request('/api/me', { settings, token })).status, 200);
+  assert.equal((await request('/api/records', { settings, token })).status, 503);
+  assert.equal(sheetRequests, 0);
+});
+
+test('writes require explicit activation and listing only uses a read-only Sheets token', async () => {
+  const token = await idToken();
+  const body = fixture();
+  for (const mode of [undefined, 'false', 'TRUE']) {
+    const settings = { ...env, GSI_WRITES_ENABLED: mode };
+    const save = await request('/api/records', { method: 'POST', settings, token, body });
+    const remove = await request('/api/records/' + body.recordKey, { method: 'DELETE', settings, token });
+    for (const response of [save, remove]) {
+      assert.equal(response.status, 403);
+      assert.deepEqual(await response.json(), { error: 'writes_disabled' });
+    }
+  }
+  assert.equal(sheetRequests, 0);
+
+  const readOnly = { ...env, GSI_WRITES_ENABLED: 'false' };
+  const history = await request('/api/records', { settings: readOnly, token });
+  assert.equal(history.status, 200);
+  assert.deepEqual(await history.json(), { records: [] });
+  const csv = await request('/api/records.csv', { settings: readOnly, token });
+  assert.equal(csv.status, 404);
+  assert.deepEqual(usedScopes, [readScope, readScope]);
 });
 
 test('rejects invalid form data and oversized input without writes', async () => {

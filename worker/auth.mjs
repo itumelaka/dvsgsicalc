@@ -7,7 +7,8 @@ const googleKeys = createRemoteJWKSet(
   { timeoutDuration: 5000 },
 );
 const tokenUrl = 'https://oauth2.googleapis.com/token';
-let cachedAccount;
+const sheetsScope = 'https://www.googleapis.com/auth/spreadsheets';
+const cachedByScope = new Map();
 
 function emails(value = '') {
   return value.toLowerCase().split(',').map(email => email.trim()).filter(Boolean);
@@ -54,7 +55,7 @@ export async function verifyOfficer(request, env) {
   };
 }
 
-async function exchangeServiceToken(secret) {
+async function exchangeServiceToken(secret, scope) {
   let assertion;
   try {
     const account = JSON.parse(secret);
@@ -62,7 +63,7 @@ async function exchangeServiceToken(secret) {
       throw new Error('Invalid service account');
     }
     const key = await importPKCS8(account.private_key, 'RS256');
-    assertion = await new SignJWT({ scope: 'https://www.googleapis.com/auth/spreadsheets' })
+    assertion = await new SignJWT({ scope })
       .setProtectedHeader({ alg: 'RS256', kid: account.private_key_id })
       .setIssuer(account.client_email)
       .setAudience(tokenUrl)
@@ -92,12 +93,14 @@ async function exchangeServiceToken(secret) {
   return { token, refreshAt: Date.now() + Math.max(0, lifetime - 60) * 1000 };
 }
 
-export async function serviceToken(secret) {
-  if (cachedAccount?.secret === secret && cachedAccount.refreshAt > Date.now()) {
-    return cachedAccount.token;
+export async function serviceToken(secret, write) {
+  const scope = write ? sheetsScope : sheetsScope + '.readonly';
+  const cached = cachedByScope.get(scope);
+  if (cached?.secret === secret && cached.refreshAt > Date.now()) {
+    return cached.token;
   }
   // A Worker fetch belongs to its request. Only cache completed token values.
-  const token = await exchangeServiceToken(secret);
-  cachedAccount = { secret, ...token };
+  const token = await exchangeServiceToken(secret, scope);
+  cachedByScope.set(scope, { secret, ...token });
   return token.token;
 }
